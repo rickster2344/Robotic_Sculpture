@@ -8,14 +8,11 @@ except:
     pip.main(['install','pyfirmata'])
     import pyfirmata as py
 import time
-import os
+import numpy as np
 import pandas as pd
 import keyboard #https://stackoverflow.com/questions/24072790/detect-key-press-in-python
 
-board = py.Arduino('/dev/cu.usbmodem1463201')
-positions= pd.read_csv("arm_positions.csv")
-# print(len(positions))
-# positions.head()
+board = py.Arduino('/dev/cu.usbmodem1443301')
 
 class Pulley:
     def __init__(self,dirPin,stepPin):
@@ -64,35 +61,47 @@ class Pulley:
 
     # calibrate finds the number of steps for the object to move from the ground to the ceiling
     def calibrate(self):
-        print('Calibrating: press up to move up, press down to move down, enter to set limit. press r to reverse direction')
+        print('Calibrating: press up to move up, press down to move down, s to set limit.')
+
+        print('Set direction. Press r to reverse direction')
+        while True:
+            if keyboard.is_pressed('r'):
+                self.reversed = -self.reversed
+            elif keyboard.is_pressed('up'):
+                self.step(1)
+            elif keyboard.is_pressed('down'):
+                self.step(-1)
+            elif keyboard.is_pressed('s'):
+                print('Direction set...')
+                break
+        time.sleep(0.2)
         print('Set bottom limit, move pulley to bottom position')
         while True:
-            if keyboard.is_pressed('r'):
-                self.reversed = -self.reversed
-            elif keyboard.is_pressed('up'):
-                self.step(-1)
-            elif keyboard.is_pressed('down'):
+            if keyboard.is_pressed('up'):
                 self.step(1)
-            elif keyboard.is_pressed('\n'):
-                print("\nBottom limit set\n")
+            elif keyboard.is_pressed('down'):
+                self.step(-1)
+            elif keyboard.is_pressed('s'):
+                print("\nBottom limit set...\n")
                 break
-        time.sleep(0.5)
+        time.sleep(0.2)
+
         print('Set top limit')
         while True:
-            if keyboard.is_pressed('r'):
-                self.reversed = -self.reversed
-            elif keyboard.is_pressed('up'):
-                self.step(-1)
+            if keyboard.is_pressed('up'):
+                self.step(1)
                 self.posLimit+=1
             elif keyboard.is_pressed('down'):
-                self.step(1)
+                self.step(-1)
                 self.posLimit-=1
-            elif keyboard.is_pressed('\n'):
-                print("\nTop limit set\n")
+            elif keyboard.is_pressed('s'):
+                print("\nTop limit set...\n")
                 self.currentStep= self.posLimit
                 break
-        time.sleep(0.5)
+        time.sleep(0.2)
+
         print(f"Top Limit: {self.posLimit} Bottom Limit: {self.negLimit}")
+        time.sleep(0.2)
 
     def test(self):
         print('test initiated')
@@ -103,12 +112,15 @@ class Pulley:
                 self.step(1)
             elif keyboard.is_pressed('down'):
                 self.step(-1)
-            elif keyboard.is_pressed('\n'):
+            elif keyboard.is_pressed('s'):
                 print("\ntest finished\n")
                 break
     def move(self, position):
-        self.step(position-self.currentStep)
-        self.currentStep = position
+        if position >0:
+            self.step(position-self.currentStep)
+            self.currentStep = position
+        else:
+            print('Error, pos less than 0')
 
     #motor movement
     def start(self):
@@ -121,6 +133,16 @@ class Pulley:
                 break
 
 t = Pulley(5,2)
-# t.test()
-# t.calibrate()
-# t.pos()
+
+positions= pd.read_csv("arm_positions.csv")
+thumb_y= positions['thumb_y']
+thumb_y-= positions['thumb_y'].min()
+thumb_y = thumb_y/positions['thumb_y'].max()
+
+print(thumb_y.min())
+print(thumb_y.max())
+t.calibrate()
+for i in range(len(thumb_y)):
+    num = np.floor(thumb_y[i]*t.posLimit)
+    t.move(int(num))
+    print(num)
