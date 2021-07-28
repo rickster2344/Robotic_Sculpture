@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import keyboard #https://stackoverflow.com/questions/24072790/detect-key-press-in-python
 
-board = py.Arduino('/dev/cu.usbmodem1443301')
+board = py.Arduino('COM3')
 
 class Pulley:
     def __init__(self,dirPin,stepPin):
@@ -133,16 +133,39 @@ class Pulley:
                 break
 
 t = Pulley(5,2)
+u = Pulley(6,3)
+v = Pulley(7,4)
+# w = Pulley(8,5)
+
 
 positions= pd.read_csv("arm_positions.csv")
 thumb_y= positions['thumb_y']
 thumb_y-= positions['thumb_y'].min()
 thumb_y = thumb_y/positions['thumb_y'].max()
 
+handtip_y= positions['handtip_y']
+handtip_y-= positions['handtip_y'].min()
+handtip_y = handtip_y/positions['handtip_y'].max()
+
+hand_y= positions['hand_y']
+hand_y-= positions['hand_y'].min()
+hand_y = hand_y/positions['hand_y'].max()
+
 print(thumb_y.min())
 print(thumb_y.max())
 t.calibrate()
+u.calibrate()
+v.calibrate()
+
+
 for i in range(len(thumb_y)):
     num = np.floor(thumb_y[i]*t.posLimit)
     t.move(int(num))
     print(num)
+    num2 = np.floor(handtip_y[i]*t.posLimit)
+    u.move(int(num2))
+    print(num2)
+    num3 = np.floor(hand_y[i]*t.posLimit)
+    v.move(int(num3))
+    print(num3)
+
