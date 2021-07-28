@@ -12,7 +12,7 @@ import numpy as np
 import pandas as pd
 import keyboard #https://stackoverflow.com/questions/24072790/detect-key-press-in-python
 
-board = py.Arduino('/dev/cu.usbmodem1443301')
+board = py.Arduino('/dev/cu.usbmodem1463201')
 
 class Pulley:
     def __init__(self,dirPin,stepPin):
@@ -24,6 +24,7 @@ class Pulley:
         self.negLimit= 0 #constant
         self.reversed = -1
 
+#steps the motor by numSteps
     def step(self,numSteps):
         if self.reversed == -1:
             if numSteps>0:
@@ -56,10 +57,11 @@ class Pulley:
                     self.stepPin.write(0)
                     time.sleep(self.delay)
 
+# check the position of the motor
     def pos(self):
         print(self.currentStep)
 
-    # calibrate finds the number of steps for the object to move from the ground to the ceiling
+    # calibrate finds the number of steps for the object to move from the ground to the ceiling, this can then be multiplied by a percentage to move object to position. (x% of the way up to the ceiling)
     def calibrate(self):
         print('Calibrating: press up to move up, press down to move down, s to set limit.')
 
@@ -75,7 +77,7 @@ class Pulley:
                 print('Direction set...')
                 break
         time.sleep(0.2)
-        print('Set bottom limit, move pulley to bottom position')
+        print('Set bottom limit, move pulley to bottom position') #bottom limit is always 0.
         while True:
             if keyboard.is_pressed('up'):
                 self.step(1)
@@ -86,7 +88,7 @@ class Pulley:
                 break
         time.sleep(0.2)
 
-        print('Set top limit')
+        print('Set top limit') #sets the top position of the motor and counts the steps to get to the top
         while True:
             if keyboard.is_pressed('up'):
                 self.step(1)
@@ -122,27 +124,25 @@ class Pulley:
         else:
             print('Error, pos less than 0')
 
-    #motor movement
-    def start(self):
-        print('pulley started, press s to stop')
-
-        while True:
-            #self.move(position in csv)
-            if keyboard.is_pressed('s'):
-                print('pulley stopped.')
-                break
-
-t = Pulley(5,2)
+#function scales the dataframe from 0 to 1, this acts as a multiplier that formats the coordinates to the motor positions in real life
+def scale(df):
+    dfcopy= df
+    df= dfcopy
+    df-= dfcopy.min()
+    df = df/dfcopy.max()
+    del dfcopy
+    if (df.min()==0 and df.max()==1):
+        print(f"{df.name} scaled from 0-1")
 
 positions= pd.read_csv("arm_positions.csv")
 thumb_y= positions['thumb_y']
-thumb_y-= positions['thumb_y'].min()
-thumb_y = thumb_y/positions['thumb_y'].max()
+scale(thumb_y)
 
-print(thumb_y.min())
-print(thumb_y.max())
+t = Pulley(5,2)
 t.calibrate()
 for i in range(len(thumb_y)):
     num = np.floor(thumb_y[i]*t.posLimit)
     t.move(int(num))
     print(num)
+
+#arduino interacts through a serial so it could interact that way
