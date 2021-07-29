@@ -1,7 +1,7 @@
 #a tracking turret using opencv https://github.com/HackerShackOfficial/Tracking-Turret/blob/master/turret.py
-try:
 # pyfirmata documentation:https://pyfirmata.readthedocs.io/_/downloads/en/0.9.5/pdf/
 # github:https://github.com/tino/pyFirmata#readme
+try:
     import pyfirmata as py
 except:
     import pip
@@ -127,16 +127,18 @@ class Pulley:
 #function scales the dataframe from 0 to 1, this acts as a multiplier that formats the coordinates to the motor positions in real life
 def scale(df):
     dfcopy= df
-    df= dfcopy
     df-= dfcopy.min()
-    df = df/dfcopy.max()
+    df= df/dfcopy.max()
     del dfcopy
     if (df.min()==0 and df.max()==1):
         print(f"{df.name} scaled from 0-1")
+    else:
+        print('error')
+    return df
 
 positions= pd.read_csv("arm_positions.csv")
 thumb_y= positions['thumb_y']
-scale(thumb_y)
+thumb_y = scale(thumb_y)
 
 t = Pulley(5,2)
 t.calibrate()
