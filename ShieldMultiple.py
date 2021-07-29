@@ -9,7 +9,7 @@ import numpy as np
 import pandas as pd
 import keyboard #https://stackoverflow.com/questions/24072790/detect-key-press-in-python
 
-board = py.Arduino('/dev/cu.usbmodem1463201')
+board = py.Arduino('/dev/cu.usbmodem1463301')
 universalDelay = 0.0005
 fps = 30
 
