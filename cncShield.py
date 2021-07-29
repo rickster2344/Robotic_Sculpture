@@ -132,11 +132,48 @@ class Pulley:
                 print('pulley stopped.')
                 break
 
+
 t = Pulley(5,2)
 u = Pulley(6,3)
 v = Pulley(7,4)
 # w = Pulley(8,5)
 
+# r = Pulley('d:9:o', 'd:10:o')
+# s = Pulley('d:'+ str(12) +':o', 'd:'+ str(11) +':o')
+# t = Pulley('d:'+ str(5) +':o', 'd:'+ str(2) +':o')
+# u = Pulley('d:'+ str(6) +':o', 'd:'+ str(3) +':o')
+# v = Pulley('d:'+ str(7) +':o', 'd:'+ str(4) +':o')
+# w = Pulley('a:'+str(0)+':i', 'd:'+ str(13) +':o')
+# x = Pulley('a:'+str(1)+':i','a:'+str(2)+':i')
+# y = Pulley('a:'+str(4)+':i', 'a:'+str(3)+':i')
+# z = Pulley('d:'+ str(8) +':o', 'a:'+str(5)+':i')
+
+
+# positions= pd.read_csv("arm_positions.csv")
+# thumb_y= positions['thumb_y']
+# thumb_y-= positions['thumb_y'].min()
+# thumb_y = thumb_y/positions['thumb_y'].max()
+
+# handtip_y= positions['handtip_y']
+# handtip_y-= positions['handtip_y'].min()
+# handtip_y = handtip_y/positions['handtip_y'].max()
+
+# hand_y= positions['hand_y']
+# hand_y-= positions['hand_y'].min()
+# hand_y = hand_y/positions['hand_y'].max()
+
+# print(thumb_y.min())
+# print(thumb_y.max())
+# t.calibrate()
+# u.calibrate()
+# v.calibrate()
+
+# r.calibrate()
+# s.calibrate()
+# w.calibrate()
+# x.calibrate()
+# y.calibrate()
+# z.calibrate()
 
 positions= pd.read_csv("arm_positions.csv")
 thumb_y= positions['thumb_y']
@@ -157,6 +194,7 @@ t.calibrate()
 u.calibrate()
 v.calibrate()
 
+# use an array to move them at the same time!
 
 for i in range(len(thumb_y)):
     num = np.floor(thumb_y[i]*t.posLimit)
@@ -168,4 +206,3 @@ for i in range(len(thumb_y)):
     num3 = np.floor(hand_y[i]*t.posLimit)
     v.move(int(num3))
     print(num3)
-
