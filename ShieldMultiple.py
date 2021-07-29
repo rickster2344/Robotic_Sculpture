@@ -71,6 +71,84 @@ class Pulley:
         else:
             pass
 
+#CALIBRATION SEQUENCE FROM PREVIOUS WORK
+    #steps the motor by numSteps
+    def step(self,numSteps):
+        if self.reversed == -1:
+            if numSteps>0:
+                self.dirPin.write(1)
+                for i in range(numSteps):
+                    self.stepPin.write(1)
+                    time.sleep(self.delay)
+                    self.stepPin.write(0)
+                    time.sleep(self.delay)
+            else:
+                self.dirPin.write(0)
+                for i in range(-numSteps):
+                    self.stepPin.write(1)
+                    time.sleep(self.delay)
+                    self.stepPin.write(0)
+                    time.sleep(self.delay)
+        else:
+            if numSteps>0:
+                self.dirPin.write(0)
+                for i in range(numSteps):
+                    self.stepPin.write(1)
+                    time.sleep(self.delay)
+                    self.stepPin.write(0)
+                    time.sleep(self.delay)
+            else:
+                self.dirPin.write(1)
+                for i in range(-numSteps):
+                    self.stepPin.write(1)
+                    time.sleep(self.delay)
+                    self.stepPin.write(0)
+                    time.sleep(self.delay)
+
+        # calibrate finds the number of steps for the object to move from the ground to the ceiling, this can then be multiplied by a percentage to move object to position. (x% of the way up to the ceiling)
+    def calibrate(self):
+        print('Calibrating: press up to move up, press down to move down, s to set limit.')
+
+        print('Set direction. Press r to reverse direction')
+        while True:
+            if keyboard.is_pressed('r'):
+                self.reversed = -self.reversed
+            elif keyboard.is_pressed('up'):
+                self.step(1)
+            elif keyboard.is_pressed('down'):
+                self.step(-1)
+            elif keyboard.is_pressed('s'):
+                print('Direction set...')
+                break
+        time.sleep(0.2)
+        print('Set bottom limit, move pulley to bottom position') #bottom limit is always 0.
+        while True:
+            if keyboard.is_pressed('up'):
+                self.step(1)
+            elif keyboard.is_pressed('down'):
+                self.step(-1)
+            elif keyboard.is_pressed('s'):
+                print("\nBottom limit set...\n")
+                break
+        time.sleep(0.2)
+
+        print('Set top limit') #sets the top position of the motor and counts the steps to get to the top
+        while True:
+            if keyboard.is_pressed('up'):
+                self.step(1)
+                self.posLimit+=1
+            elif keyboard.is_pressed('down'):
+                self.step(-1)
+                self.posLimit-=1
+            elif keyboard.is_pressed('s'):
+                print("\nTop limit set...\n")
+                self.currentStep= self.posLimit
+                break
+        time.sleep(0.2)
+
+        print(f"Top Limit: {self.posLimit} Bottom Limit: {self.negLimit}")
+        time.sleep(0.2)
+
 def scale(df):
     dfcopy= df
     df-= dfcopy.min()
@@ -95,15 +173,9 @@ t = Pulley(5,2,thumb_y)
 u = Pulley(6,3,handtip_y)
 v = Pulley(7,4,hand_y)
 
-# t.calibrate()
-# u.calibrate()
-# v.calibrate()
-
-# set for easy code testing instead of calibration sequence
 lst = [t,u,v]
 for module in lst:
-    module.posLimit=1000
-    module.currentStep=1000
+    module.calibrate()
 
 loopReps= np.floor(1/fps/(universalDelay*2))#do it enough times that the time delay corresponds with the frame rate.
 print(loopReps)
