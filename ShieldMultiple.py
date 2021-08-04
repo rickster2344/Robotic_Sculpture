@@ -24,9 +24,7 @@ class Pulley:
         self.negLimit= 0 #constant
         self.reversed = -1
         self.data = df
-
-    #add calibration seq here
-
+#movement functions
     def onStep(self, bool):
         if bool== True:
             if self.reversed == -1:
@@ -63,6 +61,7 @@ class Pulley:
             self.currentStep -= 1
         else:
             pass
+
     def moveOff(self, position):
         if position > self.currentStep:
             self.offStep(True)
@@ -71,41 +70,20 @@ class Pulley:
         else:
             pass
 
-#CALIBRATION SEQUENCE FROM PREVIOUS WORK
-    #steps the motor by numSteps
-    def step(self,numSteps):
-        if self.reversed == -1:
-            if numSteps>0:
-                self.dirPin.write(1)
-                for i in range(numSteps):
-                    self.stepPin.write(1)
-                    time.sleep(self.delay)
-                    self.stepPin.write(0)
-                    time.sleep(self.delay)
-            else:
-                self.dirPin.write(0)
-                for i in range(-numSteps):
-                    self.stepPin.write(1)
-                    time.sleep(self.delay)
-                    self.stepPin.write(0)
-                    time.sleep(self.delay)
+    def oneStep(self):
+        if (True):
+            self.onStep(True)
+            time.sleep(self.delay)
+            self.offStep(True)
+            time.sleep(self.delay)
         else:
-            if numSteps>0:
-                self.dirPin.write(0)
-                for i in range(numSteps):
-                    self.stepPin.write(1)
-                    time.sleep(self.delay)
-                    self.stepPin.write(0)
-                    time.sleep(self.delay)
-            else:
-                self.dirPin.write(1)
-                for i in range(-numSteps):
-                    self.stepPin.write(1)
-                    time.sleep(self.delay)
-                    self.stepPin.write(0)
-                    time.sleep(self.delay)
-
+            self.onStep(False)
+            time.sleep(self.delay)
+            self.offStep(False)
+            time.sleep(self.delay)
+#CALIBRATION SEQUENCE FROM PREVIOUS WORK
         # calibrate finds the number of steps for the object to move from the ground to the ceiling, this can then be multiplied by a percentage to move object to position. (x% of the way up to the ceiling)
+
     def calibrate(self):
         print('Calibrating: press up to move up, press down to move down, s to set limit.')
 
@@ -114,9 +92,9 @@ class Pulley:
             if keyboard.is_pressed('r'):
                 self.reversed = -self.reversed
             elif keyboard.is_pressed('up'):
-                self.step(1)
+                self.oneStep(True)
             elif keyboard.is_pressed('down'):
-                self.step(-1)
+                self.oneStep(False)
             elif keyboard.is_pressed('s'):
                 print('Direction set...')
                 break
@@ -124,9 +102,9 @@ class Pulley:
         print('Set bottom limit, move pulley to bottom position') #bottom limit is always 0.
         while True:
             if keyboard.is_pressed('up'):
-                self.step(1)
+                self.oneStep(True)
             elif keyboard.is_pressed('down'):
-                self.step(-1)
+                self.oneStep(False)
             elif keyboard.is_pressed('s'):
                 print("\nBottom limit set...\n")
                 break
@@ -135,10 +113,10 @@ class Pulley:
         print('Set top limit') #sets the top position of the motor and counts the steps to get to the top
         while True:
             if keyboard.is_pressed('up'):
-                self.step(1)
+                self.oneStep(True)
                 self.posLimit+=1
             elif keyboard.is_pressed('down'):
-                self.step(-1)
+                self.oneStep(False)
                 self.posLimit-=1
             elif keyboard.is_pressed('s'):
                 print("\nTop limit set...\n")
