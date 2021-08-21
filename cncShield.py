@@ -106,7 +106,7 @@ class Pulley:
         time.sleep(0.2)
 
     def test(self):
-        print('test initiated')
+        print('test initiated, press s to finish')
         while True:
             if keyboard.is_pressed('r'):
                 self.reversed = -self.reversed
@@ -141,10 +141,18 @@ thumb_y= positions['thumb_y']
 thumb_y = scale(thumb_y)
 
 t = Pulley(5,2)
-t.calibrate()
-for i in range(len(thumb_y)):
-    num = np.floor(thumb_y[i]*t.posLimit)
-    t.move(int(num))
-    print(num)
+u = Pulley(6,3)
+lst = [t,u]
+for module in lst:
+    module.posLimit=1000
+    module.currentStep=1000
 
+# t.calibrate()
+# for i in range(len(thumb_y)):
+#     num = np.floor(thumb_y[i]*t.posLimit)
+#     t.move(int(num))
+#     print(num)
+t.test()
+time.sleep(1)
+u.test()
 #arduino interacts through a serial so it could interact that way
