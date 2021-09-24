@@ -4,7 +4,7 @@ import numpy as np
 import json
 import serial 
 import time
-from google.protobuf.json_format import MessageToJson
+# from google.protobuf.json_format import MessageToJson
 
 mp_drawing = mp.solutions.drawing_utils
 mp_pose = mp.solutions.pose
@@ -22,9 +22,8 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
   while cap.isOpened():
     ret, frame = cap.read() #extract ret and frame from webcam
 
-
-    #Recolour feed
-    image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) #
+    #Recolour feed, detegtion works in RGB
+    image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
     #Make detection
     results = pose.process(image) #pass image to model
     
@@ -35,7 +34,7 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
     image= cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
 
     #Draw pose landmarks
-    mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS,mp_drawing.DrawingSpec(color=(50,50,150), thickness=2, circle_radius=2), mp_drawing.DrawingSpec(color=(0,0,255), thickness=2, circle_radius=2))
+    mp_drawing.draw_landmarks(image, results.pose_landmarks, mp_pose.POSE_CONNECTIONS, mp_drawing.DrawingSpec(color=(50,50,150), thickness=2, circle_radius=2), mp_drawing.DrawingSpec(color=(0,0,255), thickness=2, circle_radius=2))
     #recolouring ^
 
     # Export coords
@@ -45,8 +44,7 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
 
     except:
       pass
-      
-    # print(poses)
+    
     pose_json = json.dumps(poses_row) + str('\n')
     # for i in range(0,numLandmarks):
     #   for j in range(0,numVariables):
@@ -54,9 +52,7 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
     port.write(pose_json.encode())
     # print(pose_json)
 
-
     print(port.readline())
-
 
     #display and intterupt
     cv2.imshow('Name', image)
