@@ -12,7 +12,7 @@ numLandmarks = 33
 numVariables = 4
 numDigitsPerVar = 5
 
-port = serial.Serial('/dev/cu.usbmodem1463301', baudrate=115200, timeout=1) #Defining port with timeout (if doesnt recieve info after 1 sec)
+port = serial.Serial('COM4', baudrate=14400, timeout=1) #Defining port with timeout (if doesnt recieve info after 1 sec), can increase baudrate if needed
 time.sleep(2) #ensure arduino is fully init
 
 cap = cv2.VideoCapture(0) #v cap device id=0
@@ -24,11 +24,10 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
 
     #Recolour feed, detegtion works in RGB
     image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB) 
+   
     #Make detection
     results = pose.process(image) #pass image to model
-    
     #pose landmarks are stored in results, check index in mediaframe github
-    # print(results.pose_landmarks)
   
     #Recolour opencv image back to BGR to display
     image= cv2.cvtColor(image,cv2.COLOR_RGB2BGR)
@@ -40,17 +39,14 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
     # Export coords
     try:
       poses = results.pose_landmarks.landmark #try putting into your own protobuf thing, then use protobuf in arduino
-      poses_row = [[round(landmark.x,5), round(landmark.y,5), round(landmark.z,5), round(landmark.visibility,5)] for landmark in poses]
+      # poses_row = [[round(landmark.x,5), round(landmark.y,5), round(landmark.z,5), round(landmark.visibility,5)] for landmark in poses] #if all points are used
+      poses_row = [round(landmark.y*10000) for landmark in poses] #only y used, scale output from 0-10000 according to encoder.
 
     except:
       pass
     
     pose_json = json.dumps(poses_row) + str('\n')
-    # for i in range(0,numLandmarks):
-    #   for j in range(0,numVariables):
-    #     port.write(poses_row[i][j])
     port.write(pose_json.encode())
-    # print(pose_json)
 
     print(port.readline())
 

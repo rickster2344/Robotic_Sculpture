@@ -7,7 +7,7 @@ void setup() {
 
   pinMode(encoderPinB, INPUT_PULLUP); // internal pullup input pin 2 
   
-  pinMode(encoderPinA, INPUT_PULLUP); // internalเป็น pullup input pin 3
+  pinMode(encoderPinA, INPUT_PULLUP); // internal pullup input pin 3
    //Setting up interrupt
   //A rising pulse from encodenren activated ai0(). AttachInterrupt 0 is DigitalPin nmbr 2 on most Arduino.
   attachInterrupt(0, ai0, RISING);
@@ -17,7 +17,7 @@ void setup() {
   }
    
   void loop() {
-  // Send the value of counter
+  // Send the value of counter if changed
   if( counter != temp ){
   Serial.println (counter);
   temp = counter;
