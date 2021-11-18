@@ -33,7 +33,7 @@ float delaytime(float speed) {
 
 
 void setup() {
-  Serial.begin(14400);
+  Serial.begin(9600);
   pinMode(stepPin, OUTPUT);
   pinMode(dirPin, OUTPUT);
   
@@ -50,21 +50,6 @@ void setup() {
 
 void loop() {
   if (state == 0){
-    if(Serial.available()>0) {
-    DynamicJsonDocument doc(2048);
-    String blah = Serial.readStringUntil('\n');
-  
-    DeserializationError err = deserializeJson(doc, blah.c_str());
-    if (err) {
-      Serial.println(err.f_str());
-      return;
-    }
-    target = doc[15];
-//    Serial.println(target);
-   }
-   state = 1;
-  } 
-  if (state == 1){
     long currT = micros();
     float deltaT = (currT - prevT) / 1.0e6;
 
@@ -87,9 +72,7 @@ void loop() {
       vel = 200;
     }
     prevT = currT;
-//    Serial.println(vel);
-    Serial.println(error);
-    state = 0;
+    Serial.println(u);
   }
 }
 

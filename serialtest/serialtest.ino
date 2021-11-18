@@ -7,7 +7,7 @@ int positions[2][3];
 
 void setup() {
   // put your setup code here, to run once:
-  Serial.begin(115200);
+  Serial.begin(14400);
 }
 
 void loop() {
@@ -23,7 +23,7 @@ void loop() {
       return;
     }
 
-    double x15 = doc[15][0];
+    double x15 = doc[15];
     Serial.println(x15);
   }
 }
