@@ -12,8 +12,8 @@ numLandmarks = 33
 numVariables = 4
 numDigitsPerVar = 5
 
-port = serial.Serial('COM4', baudrate=14400, timeout=1) #Defining port with timeout (if doesnt recieve info after 1 sec), can increase baudrate if needed
-time.sleep(2) #ensure arduino is fully init
+port = serial.Serial('COM4', baudrate=1200, timeout=1) #Defining port with timeout (if doesnt recieve info after 1 sec), can increase baudrate if needed
+time.sleep(1) #ensure arduino is fully init
 
 cap = cv2.VideoCapture(0) #v cap device id=0
 
@@ -40,15 +40,20 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
     try:
       poses = results.pose_landmarks.landmark #try putting into your own protobuf thing, then use protobuf in arduino
       # poses_row = [[round(landmark.x,5), round(landmark.y,5), round(landmark.z,5), round(landmark.visibility,5)] for landmark in poses] #if all points are used
-      poses_row = [round(landmark.y*10000) for landmark in poses] #only y used, scale output from 0-10000 according to encoder.
+      poses_y = [landmark.y for landmark in poses] #only y used
 
     except:
       pass
     
-    pose_json = json.dumps(poses_row) + str('\n')
-    port.write(pose_json.encode())
+    if(port.inWaiting() > 0):
+        line = port.readline()
+        print(line)
+        if (line == b'request\r\n' and lastline != line) :
+            #linux uses linefeed, windows carriagereturnlinefeed, macox uses carriagereturn
+            #line: b'request\r\n' therefore is crlf
 
-    print(port.readline())
+            port.write(str(poses_y[15]).encode('ascii'))
+        lastline = line
 
     #display and intterupt
     cv2.imshow('Name', image)

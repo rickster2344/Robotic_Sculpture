@@ -18,7 +18,7 @@ void timer(int milis){
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println("request");
-  
+ 
   timer(100);
   
   if (Serial.available() > 0) {
@@ -30,5 +30,5 @@ void loop() {
     Serial.println(value);
   }
 
-  timer(1000);  
+  timer(500);  
 }

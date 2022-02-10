@@ -30,10 +30,29 @@ float errorprev = 0;
 float delaytime(float speed) {
   return 550 * 200 / speed;
 }
+void ai0() {
+  // ai0 is activated if DigitalPin nr 2 is going from LOW to HIGH
+  // Check pin 3 to determine the direction
+  if (digitalRead(encoderPinA) == LOW) {
+    pos++;
+  } else {
+    pos--;
+  }
+}
 
+void ai1() {
+  // ai0 is activated if DigitalPin nr 3 is going from LOW to HIGH
+  // Check with pin 2 to determine the direction
+  if (digitalRead(encoderPinB) == LOW) {
+    pos--;
+  }
+  else {
+    pos++;
+  }
+}
 
 void setup() {
-  Serial.begin(14400);
+  Serial.begin(1200);
   pinMode(stepPin, OUTPUT);
   pinMode(dirPin, OUTPUT);
   
@@ -48,22 +67,35 @@ void setup() {
   attachInterrupt(1, ai1, RISING);
 }
 
+void timer(int milis){
+  long now = millis();
+  long b4 = now;
+  while (now - b4 < milis){
+    now = millis();
+  }
+}
+
+int request(){
+  String message;
+  int value = 0;
+  Serial.println("request");
+  timer(100);
+
+  if (Serial.available() > 0) {
+    // read the incoming byte:
+    message = Serial.readStringUntil("\n");
+  }
+  value = message.toInt();
+  return value;
+}
+
+
 void loop() {
   if (state == 0){
-    if(Serial.available()>0) {
-    DynamicJsonDocument doc(2048);
-    String blah = Serial.readStringUntil('\n');
-  
-    DeserializationError err = deserializeJson(doc, blah.c_str());
-    if (err) {
-      Serial.println(err.f_str());
-      return;
-    }
-    target = doc[15];
-//    Serial.println(target);
+    target = request();
+    state = 1;
    }
-   state = 1;
-  } 
+ 
   if (state == 1){
     long currT = micros();
     float deltaT = (currT - prevT) / 1.0e6;
@@ -90,26 +122,5 @@ void loop() {
 //    Serial.println(vel);
     Serial.println(error);
     state = 0;
-  }
-}
-
-void ai0() {
-  // ai0 is activated if DigitalPin nr 2 is going from LOW to HIGH
-  // Check pin 3 to determine the direction
-  if (digitalRead(encoderPinA) == LOW) {
-    pos++;
-  } else {
-    pos--;
-  }
-}
-
-void ai1() {
-  // ai0 is activated if DigitalPin nr 3 is going from LOW to HIGH
-  // Check with pin 2 to determine the direction
-  if (digitalRead(encoderPinB) == LOW) {
-    pos--;
-  }
-  else {
-    pos++;
   }
 }
