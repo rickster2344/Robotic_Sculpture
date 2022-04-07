@@ -69,8 +69,7 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
                 msg = poses_y[15]
                 if (msg < 0):
                   msg = 0
-                print(f'Message sent: {msg}')
-                # port.write(str(msg).encode('ascii'))
+                # print(f'Message sent: {msg}')
                 port.write(str(msg).encode('ascii'))
           lastline = line
   

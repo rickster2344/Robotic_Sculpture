@@ -41,20 +41,20 @@ long now;
 long b4;
 
 void timer(int milis){
-  now = millis();
+  now = micros();
   b4 = now;
   while (now - b4 < milis){
-    now = millis();
+    now = micros();
   }
 }
 
-void request(){
+void request(){//there seems to be a bottleneck somewhere in the ask send protocol. 
+  //making it really slow to go between mediapipe and arduino
   String message;
   Serial.println("request");
   bool condition = false;
 
   do{
-    timer(50);
     if (Serial.available()>0){
       condition = true;
     }
@@ -79,8 +79,8 @@ void loop() {
 
     //find error
     Serial.print("position: ");
-    Serial.println(encoderPos);
-    int error = target - encoderPos;
+    Serial.println(encoderPos/100);
+    int error = target - encoderPos/100;
     //find derivative term
     float dedt = (error - errorprev) / deltaT;
     errorprev = error; //store previous error
@@ -91,10 +91,13 @@ void loop() {
     //PID calculation
     u = kp * error + kd * dedt + ki * eintegral;
 
+    vel = u;
     //motor velocity with level from 0-255 PWM scale
-    vel = fabs(u);
     if (vel > 255) {
       vel = 255;
+    }
+    else if (vel < -255){
+      vel = -255;
     }
     Serial.print("velocity: ");
     Serial.println(vel);
