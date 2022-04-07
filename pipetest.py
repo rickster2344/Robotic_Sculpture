@@ -1,7 +1,8 @@
+# from email import message
 import cv2
 import mediapipe as mp
 import numpy as np
-import json
+# import json
 import serial 
 import time
 # from google.protobuf.json_format import MessageToJson
@@ -11,9 +12,13 @@ mp_pose = mp.solutions.pose
 numLandmarks = 33
 numVariables = 4
 numDigitsPerVar = 5
+lastline = ''
+active = False
+minY = 0
+maxY = 0
 
-port = serial.Serial('COM4', baudrate=14400, timeout=1) #Defining port with timeout (if doesnt recieve info after 1 sec), can increase baudrate if needed
-time.sleep(2) #ensure arduino is fully init
+port = serial.Serial('COM4', baudrate=1200, timeout=1) #Defining port with timeout (if doesnt recieve info after 1 sec), can increase baudrate if needed
+time.sleep(1) #ensure arduino is fully init
 
 cap = cv2.VideoCapture(0) #v cap device id=0
 
@@ -40,20 +45,40 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
     try:
       poses = results.pose_landmarks.landmark #try putting into your own protobuf thing, then use protobuf in arduino
       # poses_row = [[round(landmark.x,5), round(landmark.y,5), round(landmark.z,5), round(landmark.visibility,5)] for landmark in poses] #if all points are used
-      poses_row = [round(landmark.y*10000) for landmark in poses] #only y used, scale output from 0-10000 according to encoder.
+      poses_y = [round(landmark.y * 100) for landmark in poses] #only y used
 
     except:
       pass
-    
-    pose_json = json.dumps(poses_row) + str('\n')
-    port.write(pose_json.encode())
+    else:
+      active = True
 
-    print(port.readline())
+    if (active == True):
+      if (poses_y[15] < minY):
+        minY = poses_y[15]
+      if (poses_y[15]> maxY):
+        maxY = poses_y[15]
 
+
+      if(port.inWaiting() > 0):
+          line = port.readline()
+          print(line)
+          if (lastline != line):
+            if (line == b'request\r\n') :
+                #linux uses linefeed, windows carriagereturnlinefeed, macox uses carriagereturn
+                #line: b'request\r\n' therefore is crlf
+                msg = poses_y[15]
+                if (msg < 0):
+                  msg = 0
+                print(f'Message sent: {msg}')
+                # port.write(str(msg).encode('ascii'))
+                port.write(str(msg).encode('ascii'))
+          lastline = line
+  
     #display and intterupt
     cv2.imshow('Name', image)
      #after 1 sec, if q pressed, break
-    if cv2.waitKey(1) & 0xFF == ord('q'): 
+    if cv2.waitKey(1) & 0xFF == ord('q'):
+      print(f'maxY: {maxY}, minY: {minY}')
       break
 
 cap.release()
