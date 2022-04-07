@@ -17,7 +17,7 @@ active = False
 minY = 0
 maxY = 0
 
-port = serial.Serial('COM4', baudrate=1200, timeout=1) #Defining port with timeout (if doesnt recieve info after 1 sec), can increase baudrate if needed
+port = serial.Serial('COM4', baudrate=115200, timeout=1) #Defining port with timeout (if doesnt recieve info after 1 sec), can increase baudrate if needed
 time.sleep(1) #ensure arduino is fully init
 
 cap = cv2.VideoCapture(0) #v cap device id=0
@@ -58,7 +58,8 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
       if (poses_y[15]> maxY):
         maxY = poses_y[15]
 
-
+    # port.write(str(poses_y[15]).encode('ascii'))
+    
       if(port.inWaiting() > 0):
           line = port.readline()
           print(line)

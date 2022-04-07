@@ -27,8 +27,8 @@ float errorprev = 0;
 DCMotor motor1(4,5,6);
 
 void setup() {
-  Serial.begin(1200);
-
+  Serial.begin(115200);
+  pinMode(13, OUTPUT);
   //Encoder Setup:
   pinMode(encoderPinB, INPUT_PULLUP); // internal pullup input pin 2 
   pinMode(encoderPinA, INPUT_PULLUP); // internal pullup input pin 3
@@ -47,22 +47,26 @@ void timer(int milis){
     now = micros();
   }
 }
+//ammend: null terminated charater arrays instead of strings. 
+//change communication protocol to [r,.,.,.,\n] change to staggered process of reading message
+//pseudo parallel reading of data.
 
 void request(){//there seems to be a bottleneck somewhere in the ask send protocol. 
   //making it really slow to go between mediapipe and arduino
   String message;
   Serial.println("request");
   bool condition = false;
-
+  digitalWrite(13,LOW);
   do{
-    if (Serial.available()>0){
+    if (Serial.available()>0){//this is slow
       condition = true;
     }
   } while (condition == false);
-  
-   // read the incoming byte:
-   message = Serial.readStringUntil('\n');
-   target= message.toInt();
+  digitalWrite(13,HIGH);
+//    read the incoming byte:
+//   message = Serial.readStringUntil('\n');// these two lines are holding up because string operations are very slow on a microcontroller (and on regular computer)
+//   target= message.toInt();
+   target = 0;
    Serial.print("Target: ");
    Serial.println(target);
 }
