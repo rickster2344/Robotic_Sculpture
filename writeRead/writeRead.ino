@@ -18,17 +18,18 @@ void timer(int milis){
 void loop() {
   // put your main code here, to run repeatedly:
   Serial.println("request");
- 
+  
   timer(100);
   
   if (Serial.available() > 0) {
     // read the incoming byte:
     value = Serial.readStringUntil("\n");
+    value.toInt();
 
     // say what you got:
     Serial.print("I recieved: ");
     Serial.println(value);
   }
 
-  timer(500);  
+  timer(200);  
 }
