@@ -24,7 +24,7 @@ float errorprev = 0;
 
 //Motor Defenition:
 //DCMotor motor2(9,8,7);
-DCMotor motor1(5,6,7);
+DCMotor motor1(4,5,6);
 
 void setup() {
   Serial.begin(115200);
@@ -48,47 +48,36 @@ void timer(int milis){
   }
 }
 
-float charArrToInt(char input[4]){
-  int i;
-  float pow10=10;
-  float number =0; 
-  int value = 0;
-  for(i=0; i<4; i++){
-    value = input[3-i]-'0';
-    number += value*pow(pow10,i);
-  }
-  return number;
-}
 
 //ammend: null terminated charater arrays instead of strings. 
 //change communication protocol to [r,.,.,.,\n] change to staggered process of reading message
 //pseudo parallel reading of data.
 
-void request(){//there seems to be a bottleneck somewhere in the ask send protocol. 
-  //making it really slow to go between mediapipe and arduino
-  char message[4]; //character array to store number
+void request(){
+  char msg;
+  int intChar = 0;
+  float pow10 = 10;
+  float value = 0;
+  int degree = 0;
+
+  bool condition = false;
   
   Serial.println('r');
-  bool condition = false;
-  do{//waits for there to be something in the serial port
-    if (Serial.available()>0){
-      condition = true;
-    }
-  } while (condition == false);
-
-//read the incoming byte:
-  int j = 0;
-  char msg;
   do{
+    condition = false;
+    do{//waits for there to be something in the serial port
+      if (Serial.available()>0){
+        condition = true;
+      }
+    } while (condition == false);
     msg = Serial.read();
-    if(msg != 'f' && Serial.available()>0){
-       message[j] = msg;
-       Serial.print(msg);
-    }
-    j+=1;
-  }while(msg != 'f');;
-
-  target = charArrToInt(message);
+    if(msg != 'f'){
+      intChar = msg - '0';
+      value += intChar*pow(pow10,degree);
+      degree +=1;
+    } 
+  }while(msg != 'f');
+   target = int(value);
    Serial.print("Target: ");
    Serial.println(target);
 }
@@ -126,9 +115,7 @@ void loop() {
       vel = -255;
     }
     Serial.print("velocity: ");
-    Serial.print(vel);
-    Serial.print(" u: ");
-    Serial.println(u);
+    Serial.println(vel);
     prevT = currT;
     state = 2;
   }
