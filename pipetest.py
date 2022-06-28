@@ -1,4 +1,5 @@
 # from email import message
+from re import ASCII
 import cv2
 import mediapipe as mp
 import numpy as np
@@ -45,7 +46,7 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
     try:
       poses = results.pose_landmarks.landmark #try putting into your own protobuf thing, then use protobuf in arduino
       # poses_row = [[round(landmark.x,5), round(landmark.y,5), round(landmark.z,5), round(landmark.visibility,5)] for landmark in poses] #if all points are used
-      poses_y = [round(landmark.y * 100) for landmark in poses] #only y used
+      poses_y = [round(landmark.y * 1000) for landmark in poses] #only y used
 
     except:
       pass
@@ -53,8 +54,8 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
       active = True
 
     if (active == True):
-      if (poses_y[15] < minY):
-        minY = poses_y[15]
+      # if (poses_y[15] < minY):#not necessary if min normalised to 0
+      #   minY = poses_y[15]
       if (poses_y[15]> maxY):
         maxY = poses_y[15]
 
@@ -64,14 +65,21 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
           line = port.readline()
           print(line)
           if (lastline != line):
-            if (line == b'request\r\n') :
-                #linux uses linefeed, windows carriagereturnlinefeed, macox uses carriagereturn
+            if (line == b'r\r\n') :
+                #linux uses linefeed, windows carriagereturnlinefeed, macox uses carrqiagereturn
                 #line: b'request\r\n' therefore is crlf
                 msg = poses_y[15]
                 if (msg < 0):
                   msg = 0
-                # print(f'Message sent: {msg}')
-                port.write(str(msg).encode('ascii'))
+
+                stringMes = str(msg)  
+                print(f'Message sent: {msg}')
+                numberarr = list(stringMes)
+
+                for number in reversed(numberarr):
+                  print(number)
+                  port.write(number.encode('ascii'))
+                port.write('f'.encode('ascii')) #f for finished, 
           lastline = line
   
     #display and intterupt
