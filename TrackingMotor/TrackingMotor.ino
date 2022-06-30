@@ -2,9 +2,10 @@
 
 //State machine variable
 int state = 0;
+int active = false;
 
 //Encoder Variables
-volatile long temp, encoderPos = 0; //This variable will increase or decrease depending on the rotation of encoder
+volatile long temp, encoderPos = 500; //This variable will increase or decrease depending on the rotation of encoder
 int encoderPinB = 2;
 int encoderPinA = 3;
 
@@ -16,7 +17,7 @@ float ki = 0;
 //PID storage vars
 //int pos = 0; //This variable will increase or decrease depending on the rotation of encoder
 int target = 0;
-long prevT = 0;
+unsigned long prevT = 0;
 float u = 0;
 float vel = 0;
 float eintegral = 0;
@@ -24,11 +25,10 @@ float errorprev = 0;
 
 //Motor Defenition:
 //DCMotor motor2(9,8,7);
-DCMotor motor1(4,5,6);
+DCMotor motor1(6,7,8);
 
 void setup() {
   Serial.begin(115200);
-  pinMode(13, OUTPUT);
   //Encoder Setup:
   pinMode(encoderPinB, INPUT_PULLUP); // internal pullup input pin 2 
   pinMode(encoderPinA, INPUT_PULLUP); // internal pullup input pin 3
@@ -36,15 +36,36 @@ void setup() {
   attachInterrupt(1, ai1, RISING);
 }
 
-//Message request functionality:
-long now;
-long b4;
-
-void timer(int milis){
-  now = micros();
+void timer(int micro){
+  unsigned long now;
+  unsigned long b4;
+  now = millis();
   b4 = now;
-  while (now - b4 < milis){
-    now = micros();
+  while (now - b4 < micro){
+    now = millis();
+  }
+}
+
+
+void check(){//watchdog function checking for response from python. if no response for 1 second, off.
+  unsigned long currT;
+  unsigned long prevT;
+  currT = millis();
+  prevT = currT;
+  char comm;
+  bool condition = false;
+  Serial.println('c');
+  while (currT - prevT < 1000 && condition == false){
+    currT = millis();
+
+    if (Serial.available()>0){
+      comm = Serial.read();
+      condition = true;
+      active = true;
+    }
+  }
+  if (currT-prevT >= 1000){
+    active = false;
   }
 }
 
@@ -82,14 +103,39 @@ void request(){
    Serial.println(target);
 }
   
+  
 void loop() {
-  if (state == 0){ //Read target position
-    request();
-    state = 1;
+  if (state ==0){//idle state
+    motor1.moveMotor(0);//turn off motors
+    bool condition = false;
+    char msg;
+    do{ //wait for start
+        if (Serial.available()>0){
+          msg = Serial.read();
+          condition = true;
+        }
+      }while (condition == false);
+    if (msg== 's'){
+      active = true;
+      state = 1;
+    }
+  }
+  
+  else if (state == 1){ //Read target position
+    check();
+    
+    if (active == true){
+      request();
+      state = 2;
+    }
+    else{
+      state = 0;
+      Serial.println('0');
+    }
    }
    
-  else if (state == 1) { //PID calculation
-    long currT = micros();
+  else if (state == 2) { //PID calculation
+    unsigned long currT = micros();
     float deltaT = (currT - prevT) / 1.0e6;
 
     //find error
@@ -117,17 +163,18 @@ void loop() {
     Serial.print("velocity: ");
     Serial.println(vel);
     prevT = currT;
-    state = 2;
+    state = 3;
   }
 
-  else if (state == 2){ //motor movement
+  else if (state == 3){ //motor movement
     motor1.moveMotor(vel);
-    state = 0;
+    state = 1;
   }
 }
 
 //Encoder Functionality:
-void ai0() {
+
+void ai0() { 
   // ai0 is activated if DigitalPin nr 2 is going from LOW to HIGH
   // Check pin 3 to determine the direction
   if(digitalRead(encoderPinA)==LOW) {

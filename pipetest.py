@@ -22,7 +22,7 @@ port = serial.Serial('COM4', baudrate=115200, timeout=1) #Defining port with tim
 time.sleep(1) #ensure arduino is fully init
 
 cap = cv2.VideoCapture(0) #v cap device id=0
-
+port.write('s'.encode('ascii'))
 with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as pose: #rename mp_pose class to pose
 
   while cap.isOpened():
@@ -46,7 +46,7 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
     try:
       poses = results.pose_landmarks.landmark #try putting into your own protobuf thing, then use protobuf in arduino
       # poses_row = [[round(landmark.x,5), round(landmark.y,5), round(landmark.z,5), round(landmark.visibility,5)] for landmark in poses] #if all points are used
-      poses_y = [round(landmark.y * 1000) for landmark in poses] #only y used
+      poses_y = [round(landmark.y * 500) for landmark in poses] #only y used
 
     except:
       pass
@@ -75,11 +75,11 @@ with mp_pose.Pose(min_detection_confidence=0.5, min_tracking_confidence=0.5) as 
                 stringMes = str(msg)  
                 print(f'Message sent: {msg}')
                 numberarr = list(stringMes)
-
                 for number in reversed(numberarr):
-                  print(number)
                   port.write(number.encode('ascii'))
                 port.write('f'.encode('ascii')) #f for finished, 
+            elif (line == b'c\r\n'):
+              port.write('g'.encode('ascii'))
           lastline = line
   
     #display and intterupt
