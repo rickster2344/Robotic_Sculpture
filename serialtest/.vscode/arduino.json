@@ -1,7 +1,0 @@
-{
-    "configuration": "cpu=atmega2560",
-    "board": "arduino:avr:mega",
-    "sketch": "serialtest.ino",
-    "programmer": "arduino:arduinoasispatmega32u4",
-    "port": "/dev/cu.usbmodem1463301"
-}
